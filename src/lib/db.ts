@@ -1,4 +1,5 @@
 import { createClient, Client } from '@libsql/client'
+import bcrypt from 'bcryptjs'
 import path from 'path'
 import fs from 'fs'
 
@@ -47,4 +48,16 @@ export async function initDb(): Promise<void> {
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
   `)
+
+  const existing = await db.execute('SELECT COUNT(*) as count FROM admins')
+  const count = existing.rows[0].count as number
+  if (count === 0) {
+    const defaultUsername = process.env.ADMIN_USERNAME || 'admin'
+    const defaultPassword = process.env.ADMIN_PASSWORD || 'wedding2024'
+    const hash = bcrypt.hashSync(defaultPassword, 10)
+    await db.execute({
+      sql: 'INSERT INTO admins (username, password_hash) VALUES (?, ?)',
+      args: [defaultUsername, hash],
+    })
+  }
 }
