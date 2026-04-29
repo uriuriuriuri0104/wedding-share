@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    volumes:
+      - wedding_data:/data
+      - wedding_uploads:/app/public/uploads
+    environment:
+      - NODE_ENV=production
+      - DB_DIR=/data
+      - UPLOAD_DIR=/app/public/uploads
+      # 本番環境では必ず変更してください
+      - JWT_SECRET=change-this-to-a-random-secret-in-production
+      - ADMIN_USER=admin
+      - ADMIN_PASS=wedding2024
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/photos"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  wedding_data:
+  wedding_uploads:
