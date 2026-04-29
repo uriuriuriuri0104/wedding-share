@@ -1,11 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb, initDb } from '@/lib/db'
+import { storePhoto } from '@/lib/storage'
 import { v4 as uuidv4 } from 'uuid'
-import path from 'path'
-import fs from 'fs'
 import sharp from 'sharp'
 
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'public', 'uploads')
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
 export async function POST(req: NextRequest) {
@@ -20,8 +18,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: '写真を選択してください' }, { status: 400 })
     }
 
-    fs.mkdirSync(UPLOAD_DIR, { recursive: true })
-
     const db = getDb()
     let count = 0
 
@@ -31,22 +27,20 @@ export async function POST(req: NextRequest) {
 
       const id = uuidv4()
       const filename = `${id}.jpg`
-      const filepath = path.join(UPLOAD_DIR, filename)
 
       const buffer = Buffer.from(await file.arrayBuffer())
-
-      await sharp(buffer)
+      const processed = await sharp(buffer)
         .rotate()
         .resize(2048, 2048, { fit: 'inside', withoutEnlargement: true })
         .jpeg({ quality: 85 })
-        .toFile(filepath)
+        .toBuffer()
 
-      const stat = fs.statSync(filepath)
+      const { storedName, size } = await storePhoto(processed, filename)
 
       await db.execute({
         sql: `INSERT INTO photos (id, filename, original_name, uploader_name, message, status, file_size)
               VALUES (?, ?, ?, ?, ?, 'pending', ?)`,
-        args: [id, filename, file.name, uploaderName, message, stat.size],
+        args: [id, storedName, file.name, uploaderName, message, size],
       })
 
       count++

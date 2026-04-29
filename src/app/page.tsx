@@ -166,7 +166,7 @@ export default function GalleryPage() {
                       style={{ border: '1px solid rgba(201,168,76,0.45)' }} />
 
                     <img
-                      src={`/uploads/${photo.filename}`}
+                      src={photo.filename.startsWith('http') ? photo.filename : `/uploads/${photo.filename}`}
                       alt={photo.original_name}
                       className="w-full h-auto block transition-transform duration-700 group-hover:scale-[1.04]"
                       loading="lazy"
@@ -246,7 +246,7 @@ export default function GalleryPage() {
               <CornerOrnament className="absolute bottom-0 right-0 scale-[-1]" />
 
               <img
-                src={`/uploads/${selected.filename}`}
+                src={selected.filename.startsWith('http') ? selected.filename : `/uploads/${selected.filename}`}
                 alt={selected.original_name}
                 className="w-full max-h-[68vh] object-contain block"
                 style={{ backgroundColor: '#080f1e' }}

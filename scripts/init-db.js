@@ -3,12 +3,17 @@ const bcrypt = require('bcryptjs')
 const path = require('path')
 const fs = require('fs')
 
-const DB_DIR = process.env.DB_DIR || path.join(process.cwd(), 'data')
-fs.mkdirSync(DB_DIR, { recursive: true })
+function getClient() {
+  const tursoUrl = process.env.TURSO_DATABASE_URL
+  if (tursoUrl) {
+    return createClient({ url: tursoUrl, authToken: process.env.TURSO_AUTH_TOKEN })
+  }
+  const DB_DIR = process.env.DB_DIR || path.join(process.cwd(), 'data')
+  fs.mkdirSync(DB_DIR, { recursive: true })
+  return createClient({ url: `file:${path.join(DB_DIR, 'wedding.db')}` })
+}
 
-const client = createClient({
-  url: `file:${path.join(DB_DIR, 'wedding.db')}`,
-})
+const client = getClient()
 
 async function main() {
   await client.executeMultiple(`

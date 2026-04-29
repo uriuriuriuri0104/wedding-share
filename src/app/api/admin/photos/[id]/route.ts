@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb, initDb } from '@/lib/db'
 import { isAdminAuthenticated } from '@/lib/auth'
-import path from 'path'
-import fs from 'fs'
-
-const UPLOAD_DIR = process.env.UPLOAD_DIR || path.join(process.cwd(), 'public', 'uploads')
+import { removePhoto } from '@/lib/storage'
 
 export async function PATCH(
   req: NextRequest,
@@ -47,14 +44,9 @@ export async function DELETE(
     return NextResponse.json({ error: '写真が見つかりません' }, { status: 404 })
   }
 
-  const filename = result.rows[0].filename as string
-
+  const storedName = result.rows[0].filename as string
   await db.execute({ sql: 'DELETE FROM photos WHERE id = ?', args: [params.id] })
-
-  const filepath = path.join(UPLOAD_DIR, filename)
-  if (fs.existsSync(filepath)) {
-    fs.unlinkSync(filepath)
-  }
+  await removePhoto(storedName)
 
   return NextResponse.json({ success: true })
 }

@@ -151,7 +151,7 @@ export default function AdminPage() {
                 {/* Image */}
                 <div className="relative aspect-square overflow-hidden">
                   <img
-                    src={`/uploads/${photo.filename}`}
+                    src={photo.filename.startsWith('http') ? photo.filename : `/uploads/${photo.filename}`}
                     alt={photo.original_name}
                     className="w-full h-full object-cover"
                     loading="lazy"

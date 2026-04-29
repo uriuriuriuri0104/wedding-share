@@ -2,18 +2,25 @@ import { createClient, Client } from '@libsql/client'
 import path from 'path'
 import fs from 'fs'
 
-const DB_DIR = process.env.DB_DIR || path.join(process.cwd(), 'data')
-
 let client: Client | null = null
 
 export function getDb(): Client {
   if (client) return client
 
-  fs.mkdirSync(DB_DIR, { recursive: true })
+  const tursoUrl = process.env.TURSO_DATABASE_URL
 
-  client = createClient({
-    url: `file:${path.join(DB_DIR, 'wedding.db')}`,
-  })
+  if (tursoUrl) {
+    client = createClient({
+      url: tursoUrl,
+      authToken: process.env.TURSO_AUTH_TOKEN,
+    })
+  } else {
+    const DB_DIR = process.env.DB_DIR || path.join(process.cwd(), 'data')
+    fs.mkdirSync(DB_DIR, { recursive: true })
+    client = createClient({
+      url: `file:${path.join(DB_DIR, 'wedding.db')}`,
+    })
+  }
 
   return client
 }
