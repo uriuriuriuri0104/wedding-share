@@ -1,7 +1,10 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Bash(npm install *)",
+      "Bash(Test-Path C:\\\\Users\\\\uriur\\\\wedding-share\\\\node_modules\\\\@vercel\\\\blob *)",
+      "Bash(git add *)"
     ]
   }
 }

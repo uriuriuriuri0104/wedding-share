@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@libsql/client": "^0.14.0",
-    "@vercel/blob": "^2.3.3",
+    "@aws-sdk/client-s3": "^3.0.0",
     "bcryptjs": "^2.4.3",
     "jose": "^5.2.4",
     "next": "14.2.5",

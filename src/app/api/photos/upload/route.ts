@@ -1,6 +1,6 @@
-import { put } from '@vercel/blob'
 import { NextRequest, NextResponse } from 'next/server'
 import { getDb, initDb } from '@/lib/db'
+import { storePhoto } from '@/lib/storage'
 import { v4 as uuidv4 } from 'uuid'
 
 export const maxDuration = 60
@@ -23,15 +23,13 @@ export async function POST(req: NextRequest) {
       const arrayBuffer = await file.arrayBuffer()
       const buffer = Buffer.from(arrayBuffer)
 
-      const blob = await put(file.name, buffer, {
-        contentType: file.type || 'image/jpeg',
-      })
+      const { storedName, size } = await storePhoto(buffer, file.name, file.type || 'image/jpeg')
 
       const id = uuidv4()
       await db.execute({
         sql: `INSERT INTO photos (id, filename, original_name, uploader_name, message, status, file_size)
               VALUES (?, ?, ?, ?, ?, 'pending', ?)`,
-        args: [id, blob.url, file.name, uploaderName, message, buffer.length],
+        args: [id, storedName, file.name, uploaderName, message, size],
       })
     }
 
