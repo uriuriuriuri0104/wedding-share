@@ -151,7 +151,6 @@ export default function UploadPage() {
                 multiple
                 className="hidden"
                 onChange={handleFileChange}
-                capture="environment"
               />
               <p className="text-stone text-base mb-1" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1.2rem' }}>
                 タップして写真を選択

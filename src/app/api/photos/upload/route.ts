@@ -4,6 +4,8 @@ import { storePhoto } from '@/lib/storage'
 import { v4 as uuidv4 } from 'uuid'
 import sharp from 'sharp'
 
+export const maxDuration = 60
+
 const MAX_FILE_SIZE = 20 * 1024 * 1024 // 20MB
 
 export async function POST(req: NextRequest) {
@@ -29,11 +31,16 @@ export async function POST(req: NextRequest) {
       const filename = `${id}.jpg`
 
       const buffer = Buffer.from(await file.arrayBuffer())
-      const processed = await sharp(buffer)
-        .rotate()
-        .resize(2048, 2048, { fit: 'inside', withoutEnlargement: true })
-        .jpeg({ quality: 85 })
-        .toBuffer()
+      let processed: Buffer
+      try {
+        processed = await sharp(buffer)
+          .rotate()
+          .resize(2048, 2048, { fit: 'inside', withoutEnlargement: true })
+          .jpeg({ quality: 85 })
+          .toBuffer()
+      } catch {
+        processed = buffer
+      }
 
       const { storedName, size } = await storePhoto(processed, filename)
 
