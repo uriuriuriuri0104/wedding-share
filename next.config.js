@@ -1,4 +1,5 @@
 /** @type {import('next').NextConfig} */
+// cache bust
 
 const remotePatterns = []
 
