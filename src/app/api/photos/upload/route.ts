@@ -24,7 +24,6 @@ export async function POST(req: NextRequest) {
       const buffer = Buffer.from(arrayBuffer)
 
       const blob = await put(file.name, buffer, {
-        access: 'authenticated',
         contentType: file.type || 'image/jpeg',
       })
 
