@@ -13,6 +13,11 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@libsql/client', 'sharp'],
   },
+  api: {
+    bodyParser: {
+      sizeLimit: '20mb',
+    },
+  },
 }
 
 module.exports = nextConfig

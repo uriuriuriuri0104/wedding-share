@@ -2,7 +2,6 @@
 
 import { useState, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { upload } from '@vercel/blob/client'
 import { GoldRule, FloralOrnament, ArchWindow, OrnamentalDivider } from '@/components/Ornaments'
 
 export default function UploadPage() {
@@ -46,33 +45,25 @@ export default function UploadPage() {
     setUploading(true)
     setResult(null)
 
-    const clientPayload = JSON.stringify({
-      uploaderName: uploaderName || 'ゲスト',
-      message,
-    })
-
     try {
-      let successCount = 0
-      for (const file of files) {
-        try {
-          await upload(file.name, file, {
-            access: 'public',
-            handleUploadUrl: '/api/photos/upload',
-            clientPayload,
-          })
-          successCount++
-        } catch (err) {
-          console.error(`Failed to upload ${file.name}:`, err)
-        }
-      }
+      const formData = new FormData()
+      formData.append('uploaderName', uploaderName || 'ゲスト')
+      formData.append('message', message)
+      files.forEach((file) => formData.append('files', file))
 
-      if (successCount > 0) {
+      const res = await fetch('/api/photos/upload', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (res.ok) {
         setResult({ success: true })
         setFiles([])
         setPreviews([])
         setMessage('')
       } else {
-        setResult({ error: 'アップロードに失敗しました' })
+        const data = await res.json()
+        setResult({ error: data.error || 'アップロードに失敗しました' })
       }
     } catch {
       setResult({ error: 'ネットワークエラーが発生しました' })
