@@ -10,6 +10,7 @@ export default function UploadPage() {
   const [uploaderName, setUploaderName] = useState('')
   const [message, setMessage] = useState('')
   const [uploading, setUploading] = useState(false)
+  const [uploadProgress, setUploadProgress] = useState<{ current: number; total: number } | null>(null)
   const [result, setResult] = useState<{ success?: boolean; error?: string } | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -45,30 +46,45 @@ export default function UploadPage() {
     setUploading(true)
     setResult(null)
 
-    try {
-      const formData = new FormData()
-      formData.append('uploaderName', uploaderName || 'ゲスト')
-      formData.append('message', message)
-      files.forEach((file) => formData.append('files', file))
+    let successCount = 0
+    let lastError = ''
 
-      const res = await fetch('/api/photos/upload', {
-        method: 'POST',
-        body: formData,
-      })
+    for (let i = 0; i < files.length; i++) {
+      setUploadProgress({ current: i + 1, total: files.length })
+      try {
+        const formData = new FormData()
+        formData.append('uploaderName', uploaderName || 'ゲスト')
+        formData.append('message', message)
+        formData.append('files', files[i])
 
-      if (res.ok) {
-        setResult({ success: true })
-        setFiles([])
-        setPreviews([])
-        setMessage('')
-      } else {
-        const data = await res.json()
-        setResult({ error: data.error || 'アップロードに失敗しました' })
+        const res = await fetch('/api/photos/upload', {
+          method: 'POST',
+          body: formData,
+        })
+
+        if (res.ok) {
+          successCount++
+        } else {
+          const data = await res.json()
+          lastError = data.error || 'アップロードに失敗しました'
+        }
+      } catch {
+        lastError = 'ネットワークエラーが発生しました'
       }
-    } catch {
-      setResult({ error: 'ネットワークエラーが発生しました' })
-    } finally {
-      setUploading(false)
+    }
+
+    setUploading(false)
+    setUploadProgress(null)
+
+    if (successCount === files.length) {
+      setResult({ success: true })
+      setFiles([])
+      setPreviews([])
+      setMessage('')
+    } else if (successCount > 0) {
+      setResult({ error: `${successCount}枚は成功しましたが、${files.length - successCount}枚に失敗しました。` })
+    } else {
+      setResult({ error: lastError || 'アップロードに失敗しました' })
     }
   }
 
@@ -242,7 +258,9 @@ export default function UploadPage() {
               className="btn-terracotta w-full"
             >
               {uploading
-                ? '送信中...'
+                ? uploadProgress
+                  ? `${uploadProgress.current} / ${uploadProgress.total} 枚送信中...`
+                  : '送信中...'
                 : files.length > 0
                 ? `${files.length}枚の写真を投稿する`
                 : '写真を選択してください'}
