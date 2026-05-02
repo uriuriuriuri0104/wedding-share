@@ -49,10 +49,10 @@ export async function initDb(): Promise<void> {
     );
 
     CREATE TABLE IF NOT EXISTS votes (
-      id TEXT PRIMARY KEY,
-      choice_id INTEGER NOT NULL,
-      device_id TEXT NOT NULL DEFAULT '',
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip_address TEXT NOT NULL DEFAULT '',
       voter_name TEXT NOT NULL DEFAULT '',
+      choice_id INTEGER NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 

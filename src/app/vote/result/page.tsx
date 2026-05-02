@@ -27,18 +27,15 @@ export default function VoteResultPage() {
   }, [])
 
   useEffect(() => {
-    const deviceId = localStorage.getItem('wedding_vote_device_id')
-    if (deviceId) {
-      fetch(`/api/vote?deviceId=${encodeURIComponent(deviceId)}`)
-        .then((r) => r.json())
-        .then((d) => {
-          if (d.voted) {
-            setVotedChoiceId(d.choiceId)
-            setVoterName(d.voterName || '')
-          }
-        })
-        .catch(() => {})
-    }
+    fetch('/api/vote')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.voted) {
+          setVotedChoiceId(d.choiceId)
+          setVoterName(d.voterName || '')
+        }
+      })
+      .catch(() => {})
   }, [])
 
   useEffect(() => {

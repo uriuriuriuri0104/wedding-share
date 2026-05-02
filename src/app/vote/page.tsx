@@ -6,16 +6,6 @@ import Link from 'next/link'
 import { GoldRule, FloralOrnament, ArchWindow, OrnamentalDivider } from '@/components/Ornaments'
 import { VOTE_CHOICES } from '@/lib/vote-choices'
 
-function getOrCreateDeviceId(): string {
-  const key = 'wedding_vote_device_id'
-  let id = localStorage.getItem(key)
-  if (!id) {
-    id = crypto.randomUUID()
-    localStorage.setItem(key, id)
-  }
-  return id
-}
-
 export default function VotePage() {
   const router = useRouter()
   const [selected, setSelected] = useState<number | null>(null)
@@ -25,12 +15,9 @@ export default function VotePage() {
   const [alreadyName, setAlreadyName] = useState('')
   const [isChanging, setIsChanging] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
-  const [deviceId, setDeviceId] = useState('')
 
   useEffect(() => {
-    const id = getOrCreateDeviceId()
-    setDeviceId(id)
-    fetch(`/api/vote?deviceId=${encodeURIComponent(id)}`)
+    fetch('/api/vote')
       .then((r) => r.json())
       .then((data) => {
         if (data.voted) {
@@ -52,7 +39,7 @@ export default function VotePage() {
       const res = await fetch('/api/vote', {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ choiceId: selected, deviceId }),
+        body: JSON.stringify({ choiceId: selected }),
       })
       if (res.ok) {
         router.push('/vote/result')
@@ -65,7 +52,7 @@ export default function VotePage() {
       const res = await fetch('/api/vote', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ choiceId: selected, deviceId, voterName: name.trim() }),
+        body: JSON.stringify({ choiceId: selected, voterName: name.trim() }),
       })
       if (res.ok) {
         router.push('/vote/result')

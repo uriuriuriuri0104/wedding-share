@@ -7,15 +7,13 @@ async function ensureVoteTables() {
   const db = getDb()
   await db.execute(`
     CREATE TABLE IF NOT EXISTS votes (
-      id TEXT PRIMARY KEY,
-      choice_id INTEGER NOT NULL,
-      device_id TEXT NOT NULL DEFAULT '',
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ip_address TEXT NOT NULL DEFAULT '',
       voter_name TEXT NOT NULL DEFAULT '',
+      choice_id INTEGER NOT NULL,
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     )
   `)
-  try { await db.execute("ALTER TABLE votes ADD COLUMN device_id TEXT NOT NULL DEFAULT ''") } catch {}
-  try { await db.execute("ALTER TABLE votes ADD COLUMN voter_name TEXT NOT NULL DEFAULT ''") } catch {}
   await db.execute(`
     CREATE TABLE IF NOT EXISTS vote_settings (
       key TEXT PRIMARY KEY,
