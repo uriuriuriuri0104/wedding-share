@@ -6,19 +6,36 @@ import Link from 'next/link'
 import { GoldRule, FloralOrnament, ArchWindow, OrnamentalDivider } from '@/components/Ornaments'
 import { VOTE_CHOICES } from '@/lib/vote-choices'
 
+function getOrCreateDeviceId(): string {
+  const key = 'wedding_vote_device_id'
+  let id = localStorage.getItem(key)
+  if (!id) {
+    id = crypto.randomUUID()
+    localStorage.setItem(key, id)
+  }
+  return id
+}
+
 export default function VotePage() {
   const router = useRouter()
   const [selected, setSelected] = useState<number | null>(null)
+  const [name, setName] = useState('')
   const [status, setStatus] = useState<'loading' | 'ready' | 'voted' | 'submitting' | 'error'>('loading')
   const [alreadyChoiceId, setAlreadyChoiceId] = useState<number | null>(null)
+  const [alreadyName, setAlreadyName] = useState('')
+  const [isChanging, setIsChanging] = useState(false)
   const [errorMsg, setErrorMsg] = useState('')
+  const [deviceId, setDeviceId] = useState('')
 
   useEffect(() => {
-    fetch('/api/vote')
+    const id = getOrCreateDeviceId()
+    setDeviceId(id)
+    fetch(`/api/vote?deviceId=${encodeURIComponent(id)}`)
       .then((r) => r.json())
       .then((data) => {
         if (data.voted) {
           setAlreadyChoiceId(data.choiceId)
+          setAlreadyName(data.voterName || '')
           setStatus('voted')
         } else {
           setStatus('ready')
@@ -28,24 +45,47 @@ export default function VotePage() {
   }, [])
 
   const handleSubmit = async () => {
-    if (!selected) return
+    if (!selected || !name.trim()) return
     setStatus('submitting')
-    const res = await fetch('/api/vote', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ choiceId: selected }),
-    })
-    if (res.ok) {
-      router.push('/vote/result')
-    } else {
-      const data = await res.json()
-      if (res.status === 409) {
-        setStatus('voted')
+
+    if (isChanging) {
+      const res = await fetch('/api/vote', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ choiceId: selected, deviceId }),
+      })
+      if (res.ok) {
+        router.push('/vote/result')
       } else {
+        const data = await res.json()
         setErrorMsg(data.error || 'エラーが発生しました')
         setStatus('error')
       }
+    } else {
+      const res = await fetch('/api/vote', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ choiceId: selected, deviceId, voterName: name.trim() }),
+      })
+      if (res.ok) {
+        router.push('/vote/result')
+      } else {
+        const data = await res.json()
+        if (res.status === 409) {
+          setStatus('voted')
+        } else {
+          setErrorMsg(data.error || 'エラーが発生しました')
+          setStatus('error')
+        }
+      }
     }
+  }
+
+  const handleChangeVote = () => {
+    setSelected(alreadyChoiceId)
+    setName(alreadyName)
+    setIsChanging(true)
+    setStatus('ready')
   }
 
   /* ── Loading ──────────────────────────────── */
@@ -68,18 +108,39 @@ export default function VotePage() {
             <h2 className="text-4xl text-navy mb-2" style={{ fontFamily: 'var(--font-cormorant)' }}>
               投票済み
             </h2>
-            {choice && (
-              <p className="text-stone text-sm mb-1 mt-3" style={{ fontFamily: 'var(--font-lato)' }}>
-                あなたの回答：<br />
-                <span className="text-navy font-medium">{choice.label}</span>
+            {alreadyName && (
+              <p className="text-stone text-sm mt-4" style={{ fontFamily: 'var(--font-lato)' }}>
+                {alreadyName} さんの回答
               </p>
             )}
-            <p className="text-stone/60 text-xs mb-8 mt-2" style={{ fontFamily: 'var(--font-lato)' }}>
-              1端末1票まで投票できます。
+            {choice && (
+              <p className="text-stone text-sm mb-1 mt-2" style={{ fontFamily: 'var(--font-lato)' }}>
+                <span className="text-navy font-medium" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1.1rem' }}>
+                  {choice.label}
+                </span>
+              </p>
+            )}
+            <p className="text-stone/50 text-xs mt-3" style={{ fontFamily: 'var(--font-lato)' }}>
+              投票を変更することもできます。
             </p>
             <GoldRule />
-            <div className="mt-6">
-              <Link href="/vote/result" className="btn-navy" style={{ justifyContent: 'center' }}>
+            <div className="mt-6 space-y-3">
+              <button
+                onClick={handleChangeVote}
+                className="w-full py-3 text-xs tracking-widest transition-colors"
+                style={{
+                  border: '1px solid rgba(201,168,76,0.4)',
+                  color: '#8C7D6E',
+                  background: 'transparent',
+                  fontFamily: 'var(--font-lato)',
+                  cursor: 'pointer',
+                }}
+                onMouseOver={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)'; e.currentTarget.style.color = '#6B5E4E' }}
+                onMouseOut={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.4)'; e.currentTarget.style.color = '#8C7D6E' }}
+              >
+                投票を変更する
+              </button>
+              <Link href="/vote/result" className="btn-navy block" style={{ justifyContent: 'center' }}>
                 結果を見る
               </Link>
             </div>
@@ -88,6 +149,8 @@ export default function VotePage() {
       </div>
     )
   }
+
+  const canSubmit = !!selected && name.trim().length > 0 && status !== 'submitting'
 
   /* ── Vote form ────────────────────────────── */
   return (
@@ -115,13 +178,47 @@ export default function VotePage() {
             ドレス当てクイズ
           </h1>
           <p className="text-gold/50 mt-3 text-base italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
-            2着のドレスの着用順番を当ててください
+            {isChanging ? '投票を変更します' : '2着のドレスの着用順番を当ててください'}
           </p>
         </div>
         <div className="absolute bottom-0 inset-x-0 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(201,168,76,0.4), transparent)' }} />
       </header>
 
-      <main className="max-w-2xl mx-auto px-5 py-12">
+      <main className="max-w-2xl mx-auto px-5 py-10">
+
+        {/* Name input */}
+        <div className="mb-8">
+          <OrnamentalDivider>
+            <span className="text-gold/70 text-[10px] tracking-[0.4em] uppercase px-3" style={{ fontFamily: 'var(--font-lato)' }}>
+              お名前
+            </span>
+          </OrnamentalDivider>
+          <div className="mt-5">
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="例：田中 花子"
+              disabled={isChanging || status === 'submitting'}
+              className="w-full px-4 py-3 text-navy text-base outline-none transition-all"
+              style={{
+                fontFamily: 'var(--font-cormorant)',
+                fontSize: '1.1rem',
+                background: 'rgba(250,247,240,0.9)',
+                border: '1px solid rgba(201,168,76,0.35)',
+                borderBottom: '1.5px solid rgba(201,168,76,0.6)',
+              }}
+              onFocus={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.7)' }}
+              onBlur={(e) => { e.currentTarget.style.borderColor = 'rgba(201,168,76,0.35)'; e.currentTarget.style.borderBottomColor = 'rgba(201,168,76,0.6)' }}
+            />
+            {isChanging && (
+              <p className="text-stone/50 text-[10px] tracking-wider mt-2" style={{ fontFamily: 'var(--font-lato)' }}>
+                投票変更時はお名前は変更できません
+              </p>
+            )}
+          </div>
+        </div>
+
         <OrnamentalDivider>
           <span className="text-gold/70 text-[10px] tracking-[0.4em] uppercase px-3" style={{ fontFamily: 'var(--font-lato)' }}>
             順番を選んでください
@@ -203,19 +300,39 @@ export default function VotePage() {
         <div className="mt-8">
           <button
             onClick={handleSubmit}
-            disabled={!selected || status === 'submitting'}
+            disabled={!canSubmit}
             className="btn-terracotta w-full"
             style={{ justifyContent: 'center' }}
           >
-            {status === 'submitting' ? '送信中...' : selected ? '投票する' : '選択肢を選んでください'}
+            {status === 'submitting'
+              ? '送信中...'
+              : !name.trim()
+              ? 'お名前を入力してください'
+              : !selected
+              ? '選択肢を選んでください'
+              : isChanging
+              ? '投票を変更する'
+              : '投票する'}
           </button>
         </div>
+
+        {isChanging && (
+          <div className="mt-4 text-center">
+            <button
+              onClick={() => { setIsChanging(false); setStatus('voted') }}
+              className="text-stone/40 text-[10px] tracking-widest hover:text-stone/60 transition-colors"
+              style={{ fontFamily: 'var(--font-lato)' }}
+            >
+              キャンセル
+            </button>
+          </div>
+        )}
 
         <p
           className="text-center text-stone/40 text-[10px] tracking-widest mt-4"
           style={{ fontFamily: 'var(--font-lato)' }}
         >
-          ※ 1端末につき1票のみ投票できます
+          ※ 1端末につき1票のみ投票できます（変更可）
         </p>
       </main>
     </div>

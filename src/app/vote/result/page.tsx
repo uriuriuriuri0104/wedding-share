@@ -7,6 +7,7 @@ import { VOTE_CHOICES, CORRECT_CHOICE_ID } from '@/lib/vote-choices'
 
 interface Results {
   results: Record<number, number>
+  voterNames: Record<number, string[]>
   total: number
   answerRevealed: boolean
 }
@@ -14,6 +15,7 @@ interface Results {
 export default function VoteResultPage() {
   const [data, setData] = useState<Results | null>(null)
   const [votedChoiceId, setVotedChoiceId] = useState<number | null>(null)
+  const [voterName, setVoterName] = useState('')
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
 
   const fetchResults = useCallback(async () => {
@@ -25,9 +27,18 @@ export default function VoteResultPage() {
   }, [])
 
   useEffect(() => {
-    fetch('/api/vote').then((r) => r.json()).then((d) => {
-      if (d.voted) setVotedChoiceId(d.choiceId)
-    }).catch(() => {})
+    const deviceId = localStorage.getItem('wedding_vote_device_id')
+    if (deviceId) {
+      fetch(`/api/vote?deviceId=${encodeURIComponent(deviceId)}`)
+        .then((r) => r.json())
+        .then((d) => {
+          if (d.voted) {
+            setVotedChoiceId(d.choiceId)
+            setVoterName(d.voterName || '')
+          }
+        })
+        .catch(() => {})
+    }
   }, [])
 
   useEffect(() => {
@@ -111,6 +122,7 @@ export default function VoteResultPage() {
                 const pct = data.total > 0 ? Math.round((count / data.total) * 100) : 0
                 const isCorrect = data.answerRevealed && choice.id === CORRECT_CHOICE_ID
                 const isMyVote = choice.id === votedChoiceId
+                const names = data.voterNames?.[choice.id] ?? []
 
                 return (
                   <div
@@ -178,6 +190,25 @@ export default function VoteResultPage() {
                         }}
                       />
                     </div>
+
+                    {/* Voter names */}
+                    {names.length > 0 && (
+                      <p
+                        className="mt-1.5 text-[10px] leading-relaxed"
+                        style={{
+                          fontFamily: 'var(--font-lato)',
+                          color: isCorrect ? 'rgba(168,136,48,0.7)' : 'rgba(140,125,110,0.6)',
+                          letterSpacing: '0.03em',
+                        }}
+                      >
+                        {names.map((n, i) => (
+                          <span key={i}>
+                            {isMyVote && n === voterName ? <strong style={{ color: isCorrect ? '#A88830' : '#1C2E5A' }}>{n}</strong> : n}
+                            {i < names.length - 1 ? '、' : ''}
+                          </span>
+                        ))}
+                      </p>
+                    )}
                   </div>
                 )
               })}
