@@ -162,10 +162,10 @@ export default function VotePage() {
             Dress Quiz
           </p>
           <h1 className="text-5xl text-cream-light font-light" style={{ fontFamily: 'var(--font-cormorant)', letterSpacing: '0.06em' }}>
-            ドレス当てクイズ
+            オリジナルカラードレス当てクイズ
           </h1>
           <p className="text-gold/50 mt-3 text-base italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
-            {isChanging ? '投票を変更します' : '2着のドレスの着用順番を当ててください'}
+            {isChanging ? '投票を変更します' : '新婦は2着のカラードレスを着用します。その着順と種類を当ててください。'}
           </p>
         </div>
         <div className="absolute bottom-0 inset-x-0 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(201,168,76,0.4), transparent)' }} />
