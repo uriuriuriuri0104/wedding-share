@@ -4,6 +4,26 @@ import { v4 as uuidv4 } from 'uuid'
 
 async function ensureVoteTables() {
   const db = getDb()
+
+  // マイグレーション: ip_address列を持つ旧スキーマを新スキーマに置き換える
+  try {
+    const tableInfo = await db.execute("PRAGMA table_info(votes)")
+    const cols = tableInfo.rows.map(r => String(r.name))
+    if (cols.includes('ip_address') && !cols.includes('device_id')) {
+      await db.execute('ALTER TABLE votes RENAME TO votes_old')
+      await db.execute(`
+        CREATE TABLE votes (
+          id TEXT PRIMARY KEY,
+          choice_id INTEGER NOT NULL,
+          device_id TEXT NOT NULL DEFAULT '',
+          voter_name TEXT NOT NULL DEFAULT '',
+          created_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `)
+      await db.execute('DROP TABLE votes_old')
+    }
+  } catch {}
+
   await db.execute(`
     CREATE TABLE IF NOT EXISTS votes (
       id TEXT PRIMARY KEY,

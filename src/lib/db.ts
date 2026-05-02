@@ -51,7 +51,8 @@ export async function initDb(): Promise<void> {
     CREATE TABLE IF NOT EXISTS votes (
       id TEXT PRIMARY KEY,
       choice_id INTEGER NOT NULL,
-      ip_address TEXT NOT NULL UNIQUE,
+      device_id TEXT NOT NULL DEFAULT '',
+      voter_name TEXT NOT NULL DEFAULT '',
       created_at TEXT NOT NULL DEFAULT (datetime('now'))
     );
 
