@@ -115,7 +115,10 @@ export default function GalleryPage() {
             <FloralOrnament />
           </div>
 
-          <div className="mt-8">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Link href="/vote" className="btn-gold">
+              ✦ ドレス当て投票
+            </Link>
             <Link href="/upload" className="btn-gold-outline">
               Share Your Photos
             </Link>

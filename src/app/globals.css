@@ -90,6 +90,27 @@
     color: #12203E;
   }
 
+  .btn-gold {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.85rem 2.5rem;
+    background: #C9A84C;
+    color: #12203E;
+    font-family: var(--font-lato), sans-serif;
+    font-size: 0.7rem;
+    letter-spacing: 0.25em;
+    font-weight: 700;
+    text-transform: uppercase;
+    border: 1px solid #C9A84C;
+    transition: background 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .btn-gold:hover {
+    background: #D4B860;
+    border-color: #D4B860;
+    box-shadow: 0 4px 24px rgba(201,168,76,0.5);
+  }
+
   .btn-navy {
     display: inline-flex;
     align-items: center;
