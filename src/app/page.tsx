@@ -120,7 +120,7 @@ export default function GalleryPage() {
               ✦ ドレス当て投票
             </Link>
             <Link href="/upload" className="btn-gold-outline">
-              Share Your Photos
+              写真を投稿する
             </Link>
           </div>
         </div>
