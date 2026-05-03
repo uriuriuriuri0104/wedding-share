@@ -11,6 +11,22 @@ interface Photo {
   uploader_name: string
   message: string
   created_at: string
+  likes_count: number
+}
+
+const LIKED_KEY = 'wedding_liked_photos'
+
+function getLikedSet(): Set<string> {
+  try {
+    const raw = localStorage.getItem(LIKED_KEY)
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set()
+  } catch { return new Set() }
+}
+
+function saveLikedSet(set: Set<string>) {
+  try {
+    localStorage.setItem(LIKED_KEY, JSON.stringify(Array.from(set)))
+  } catch {}
 }
 
 export default function GalleryPage() {
@@ -19,6 +35,7 @@ export default function GalleryPage() {
   const [selected, setSelected] = useState<Photo | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [uploaderFilter, setUploaderFilter] = useState<string | null>(null)
+  const [likedPhotos, setLikedPhotos] = useState<Set<string>>(new Set())
 
   const fetchPhotos = useCallback(async () => {
     const res = await fetch('/api/photos')
@@ -39,6 +56,43 @@ export default function GalleryPage() {
       body: JSON.stringify({ page: '/' }),
     }).catch(() => {})
   }, [])
+
+  useEffect(() => {
+    setLikedPhotos(getLikedSet())
+  }, [])
+
+  const handleLike = async (e: React.MouseEvent, id: string) => {
+    e.stopPropagation()
+    const isLiked = likedPhotos.has(id)
+    const action = isLiked ? 'unlike' : 'like'
+
+    const newSet = new Set(likedPhotos)
+    isLiked ? newSet.delete(id) : newSet.add(id)
+    setLikedPhotos(newSet)
+    saveLikedSet(newSet)
+
+    setPhotos((prev) =>
+      prev.map((p) => p.id === id ? { ...p, likes_count: p.likes_count + (isLiked ? -1 : 1) } : p)
+    )
+
+    try {
+      const res = await fetch(`/api/photos/${id}/like`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      if (res.ok) {
+        const { likes } = await res.json()
+        setPhotos((prev) => prev.map((p) => p.id === id ? { ...p, likes_count: likes } : p))
+      }
+    } catch {
+      setLikedPhotos(likedPhotos)
+      saveLikedSet(likedPhotos)
+      setPhotos((prev) =>
+        prev.map((p) => p.id === id ? { ...p, likes_count: p.likes_count + (isLiked ? 1 : -1) } : p)
+      )
+    }
+  }
 
   const uploaders = Array.from(new Set(photos.map((p) => p.uploader_name))).sort()
   const filteredPhotos = uploaderFilter ? photos.filter((p) => p.uploader_name === uploaderFilter) : photos
@@ -227,7 +281,7 @@ export default function GalleryPage() {
                       className="absolute inset-0 flex flex-col justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300"
                       style={{ background: 'linear-gradient(to top, rgba(18,32,62,0.88) 0%, rgba(18,32,62,0.3) 50%, transparent 100%)' }}
                     >
-                      <div className="p-4">
+                      <div className="p-4 pr-12">
                         <p className="text-cream-light text-base" style={{ fontFamily: 'var(--font-cormorant)' }}>
                           {photo.uploader_name}
                         </p>
@@ -238,6 +292,37 @@ export default function GalleryPage() {
                         )}
                       </div>
                     </div>
+
+                    {/* Like button */}
+                    <button
+                      onClick={(e) => handleLike(e, photo.id)}
+                      className="absolute bottom-2 right-2 z-20 flex items-center gap-1 px-2 py-1 transition-all duration-200"
+                      style={{
+                        background: 'rgba(10,16,36,0.65)',
+                        border: likedPhotos.has(photo.id)
+                          ? '1px solid rgba(220,50,50,0.5)'
+                          : '1px solid rgba(201,168,76,0.25)',
+                        backdropFilter: 'blur(4px)',
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: '0.8rem',
+                          color: likedPhotos.has(photo.id) ? '#e53e3e' : '#C9A84C',
+                          transition: 'color 0.2s',
+                        }}
+                      >
+                        {likedPhotos.has(photo.id) ? '♥' : '♡'}
+                      </span>
+                      {photo.likes_count > 0 && (
+                        <span
+                          className="text-[10px] leading-none"
+                          style={{ fontFamily: 'var(--font-lato)', color: '#FAF7F0' }}
+                        >
+                          {photo.likes_count}
+                        </span>
+                      )}
+                    </button>
                   </div>
                 </div>
               ))}

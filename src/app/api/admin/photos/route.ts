@@ -11,7 +11,7 @@ export async function GET() {
     await initDb()
     const db = getDb()
     const result = await db.execute(`
-      SELECT id, filename, original_name, uploader_name, message, status, file_size, created_at
+      SELECT id, filename, original_name, uploader_name, message, status, file_size, created_at, likes_count
       FROM photos
       ORDER BY created_at DESC
     `)

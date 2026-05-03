@@ -71,6 +71,13 @@ export async function initDb(): Promise<void> {
 
   await db.execute("INSERT OR IGNORE INTO vote_settings (key, value) VALUES ('answer_revealed', 'false')")
 
+  // Migration: add likes_count column if it doesn't exist
+  try {
+    await db.execute('ALTER TABLE photos ADD COLUMN likes_count INTEGER NOT NULL DEFAULT 0')
+  } catch {
+    // Column already exists
+  }
+
   const existing = await db.execute('SELECT COUNT(*) as count FROM admins')
   const count = existing.rows[0].count as number
   if (count === 0) {

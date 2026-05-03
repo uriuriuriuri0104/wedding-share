@@ -14,9 +14,11 @@ interface Photo {
   status: 'pending' | 'approved'
   file_size: number
   created_at: string
+  likes_count: number
 }
 
 type Filter = 'pending' | 'approved' | 'all'
+type Sort = 'date' | 'likes'
 type Section = 'photos' | 'vote'
 
 interface SiteStats {
@@ -45,6 +47,7 @@ export default function AdminPage() {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('pending')
+  const [sort, setSort] = useState<Sort>('date')
   const [uploaderFilter, setUploaderFilter] = useState<string | null>(null)
   const [qrData, setQrData] = useState<{ qr: string; url: string } | null>(null)
   const [showQr, setShowQr] = useState(false)
@@ -177,10 +180,16 @@ export default function AdminPage() {
   const pending = photos.filter((p) => p.status === 'pending').length
   const approved = photos.filter((p) => p.status === 'approved').length
   const uploaders = Array.from(new Set(photos.map((p) => p.uploader_name))).sort()
-  const filtered = photos.filter((p) =>
-    (filter === 'all' || p.status === filter) &&
-    (!uploaderFilter || p.uploader_name === uploaderFilter)
-  )
+  const filtered = photos
+    .filter((p) =>
+      (filter === 'all' || p.status === filter) &&
+      (!uploaderFilter || p.uploader_name === uploaderFilter)
+    )
+    .sort((a, b) =>
+      sort === 'likes'
+        ? (b.likes_count ?? 0) - (a.likes_count ?? 0)
+        : new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    )
   const fmt = (b: number) => b < 1024 * 1024 ? `${(b / 1024).toFixed(0)}KB` : `${(b / 1024 / 1024).toFixed(1)}MB`
   const filterLabels: Record<Filter, string> = {
     pending: `承認待ち (${pending})`,
@@ -290,7 +299,7 @@ export default function AdminPage() {
         {/* ── Photos section ─────────────────────────── */}
         {section === 'photos' && (
           <>
-            <div className="flex gap-1.5 mb-3">
+            <div className="flex flex-wrap items-center gap-1.5 mb-3">
               {(['pending', 'approved', 'all'] as Filter[]).map((f) => (
                 <button
                   key={f}
@@ -306,6 +315,23 @@ export default function AdminPage() {
                   {filterLabels[f]}
                 </button>
               ))}
+              <div className="ml-auto flex gap-1.5">
+                {(['date', 'likes'] as Sort[]).map((s) => (
+                  <button
+                    key={s}
+                    onClick={() => setSort(s)}
+                    className="text-[10px] tracking-[0.25em] uppercase px-3 py-2 transition-colors"
+                    style={{
+                      fontFamily: 'var(--font-lato)',
+                      background: sort === s ? 'rgba(201,168,76,0.15)' : 'rgba(250,247,240,0.7)',
+                      color: sort === s ? '#A88830' : '#8C7D6E',
+                      border: '1px solid ' + (sort === s ? 'rgba(201,168,76,0.4)' : 'rgba(201,168,76,0.15)'),
+                    }}
+                  >
+                    {s === 'date' ? '日時順' : '♥ いいね順'}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {uploaders.length > 1 && (
@@ -389,8 +415,11 @@ export default function AdminPage() {
                           {photo.message}
                         </p>
                       )}
-                      <p className="text-stone/40 text-[10px] mt-1" style={{ fontFamily: 'var(--font-lato)' }}>
-                        {new Date(photo.created_at).toLocaleDateString('ja-JP')} · {fmt(photo.file_size)}
+                      <p className="text-stone/40 text-[10px] mt-1 flex items-center gap-2" style={{ fontFamily: 'var(--font-lato)' }}>
+                        <span>{new Date(photo.created_at).toLocaleDateString('ja-JP')} · {fmt(photo.file_size)}</span>
+                        {(photo.likes_count ?? 0) > 0 && (
+                          <span style={{ color: '#e53e3e' }}>♥ {photo.likes_count}</span>
+                        )}
                       </p>
                       <div className="flex gap-1.5 mt-3">
                         {photo.status === 'pending' ? (
