@@ -39,6 +39,7 @@ export default function AdminPage() {
   const [filter, setFilter] = useState<Filter>('pending')
   const [qrData, setQrData] = useState<{ qr: string; url: string } | null>(null)
   const [showQr, setShowQr] = useState(false)
+  const [downloading, setDownloading] = useState(false)
 
   // Section
   const [section, setSection] = useState<Section>('photos')
@@ -86,6 +87,27 @@ export default function AdminPage() {
       if (res.ok) setQrData(await res.json())
     }
     setShowQr(true)
+  }
+
+  const downloadZip = async () => {
+    setDownloading(true)
+    try {
+      const res = await fetch('/api/admin/photos/download')
+      if (!res.ok) {
+        const { error } = await res.json()
+        alert(error || 'ダウンロードに失敗しました')
+        return
+      }
+      const blob = await res.blob()
+      const dateStr = new Date().toISOString().slice(0, 10)
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = `wedding-photos-${dateStr}.zip`
+      a.click()
+      URL.revokeObjectURL(a.href)
+    } finally {
+      setDownloading(false)
+    }
   }
 
   /* ── Vote ─────────────────────────────────── */
@@ -168,9 +190,24 @@ export default function AdminPage() {
               {section === 'photos' ? 'Vote' : 'Photos'}
             </button>
             {section === 'photos' && (
-              <button onClick={loadQr} className="btn-gold-outline" style={{ padding: '0.5rem 1.25rem' }}>
-                QR Code
-              </button>
+              <>
+                <button onClick={loadQr} className="btn-gold-outline" style={{ padding: '0.5rem 1.25rem' }}>
+                  QR Code
+                </button>
+                <button
+                  onClick={downloadZip}
+                  disabled={downloading || approved === 0}
+                  className="btn-gold-outline"
+                  style={{ padding: '0.5rem 1.25rem', opacity: (downloading || approved === 0) ? 0.5 : 1 }}
+                >
+                  {downloading ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="spinner" style={{ width: '0.75rem', height: '0.75rem', borderWidth: '1.5px' }} />
+                      <span>ZIP</span>
+                    </span>
+                  ) : 'ZIP'}
+                </button>
+              </>
             )}
             <button
               onClick={logout}
