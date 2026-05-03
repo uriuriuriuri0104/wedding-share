@@ -18,6 +18,7 @@ export default function GalleryPage() {
   const [loading, setLoading] = useState(true)
   const [selected, setSelected] = useState<Photo | null>(null)
   const [selectedIndex, setSelectedIndex] = useState(0)
+  const [uploaderFilter, setUploaderFilter] = useState<string | null>(null)
 
   const fetchPhotos = useCallback(async () => {
     const res = await fetch('/api/photos')
@@ -31,20 +32,23 @@ export default function GalleryPage() {
     return () => clearInterval(id)
   }, [fetchPhotos])
 
+  const uploaders = Array.from(new Set(photos.map((p) => p.uploader_name))).sort()
+  const filteredPhotos = uploaderFilter ? photos.filter((p) => p.uploader_name === uploaderFilter) : photos
+
   const openPhoto = (photo: Photo, index: number) => {
     setSelected(photo)
     setSelectedIndex(index)
   }
 
   const prevPhoto = () => {
-    const i = (selectedIndex - 1 + photos.length) % photos.length
-    setSelected(photos[i])
+    const i = (selectedIndex - 1 + filteredPhotos.length) % filteredPhotos.length
+    setSelected(filteredPhotos[i])
     setSelectedIndex(i)
   }
 
   const nextPhoto = () => {
-    const i = (selectedIndex + 1) % photos.length
-    setSelected(photos[i])
+    const i = (selectedIndex + 1) % filteredPhotos.length
+    setSelected(filteredPhotos[i])
     setSelectedIndex(i)
   }
 
@@ -147,17 +151,52 @@ export default function GalleryPage() {
         ) : (
           <>
             {/* Section label */}
-            <div className="flex flex-col items-center gap-4 mb-16">
+            <div className="flex flex-col items-center gap-4 mb-10">
               <OrnamentalDivider />
               <p className="text-stone/60 text-[11px] tracking-[0.45em] uppercase" style={{ fontFamily: 'var(--font-lato)' }}>
-                {photos.length} photograph{photos.length !== 1 ? 's' : ''}
+                {uploaderFilter
+                  ? `${filteredPhotos.length} / ${photos.length} photograph${photos.length !== 1 ? 's' : ''}`
+                  : `${photos.length} photograph${photos.length !== 1 ? 's' : ''}`}
               </p>
               <OrnamentalDivider />
             </div>
 
+            {/* Uploader filter */}
+            {uploaders.length > 1 && (
+              <div className="flex flex-wrap justify-center gap-1.5 mb-12">
+                <button
+                  onClick={() => setUploaderFilter(null)}
+                  className="text-[10px] tracking-[0.3em] uppercase px-4 py-2 transition-colors"
+                  style={{
+                    fontFamily: 'var(--font-lato)',
+                    background: uploaderFilter === null ? '#1C2E5A' : 'rgba(250,247,240,0.8)',
+                    color: uploaderFilter === null ? '#C9A84C' : '#8C7D6E',
+                    border: '1px solid ' + (uploaderFilter === null ? 'rgba(201,168,76,0.4)' : 'rgba(201,168,76,0.2)'),
+                  }}
+                >
+                  全員
+                </button>
+                {uploaders.map((name) => (
+                  <button
+                    key={name}
+                    onClick={() => setUploaderFilter(name)}
+                    className="text-[10px] tracking-[0.3em] uppercase px-4 py-2 transition-colors"
+                    style={{
+                      fontFamily: 'var(--font-lato)',
+                      background: uploaderFilter === name ? '#1C2E5A' : 'rgba(250,247,240,0.8)',
+                      color: uploaderFilter === name ? '#C9A84C' : '#8C7D6E',
+                      border: '1px solid ' + (uploaderFilter === name ? 'rgba(201,168,76,0.4)' : 'rgba(201,168,76,0.2)'),
+                    }}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            )}
+
             {/* Masonry grid */}
             <div className="columns-2 sm:columns-3 lg:columns-4 gap-5 space-y-5">
-              {photos.map((photo, i) => (
+              {filteredPhotos.map((photo, i) => (
                 <div
                   key={photo.id}
                   className="break-inside-avoid cursor-pointer group"
@@ -229,7 +268,7 @@ export default function GalleryPage() {
             {/* Close */}
             <div className="absolute -top-10 right-0 flex items-center gap-6">
               <span className="text-gold/40 text-xs tracking-widest" style={{ fontFamily: 'var(--font-lato)' }}>
-                {selectedIndex + 1} / {photos.length}
+                {selectedIndex + 1} / {filteredPhotos.length}
               </span>
               <button
                 onClick={() => setSelected(null)}

@@ -37,6 +37,7 @@ export default function AdminPage() {
   const [photos, setPhotos] = useState<Photo[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<Filter>('pending')
+  const [uploaderFilter, setUploaderFilter] = useState<string | null>(null)
   const [qrData, setQrData] = useState<{ qr: string; url: string } | null>(null)
   const [showQr, setShowQr] = useState(false)
   const [downloading, setDownloading] = useState(false)
@@ -155,7 +156,11 @@ export default function AdminPage() {
   /* ── Derived ──────────────────────────────── */
   const pending = photos.filter((p) => p.status === 'pending').length
   const approved = photos.filter((p) => p.status === 'approved').length
-  const filtered = photos.filter((p) => filter === 'all' || p.status === filter)
+  const uploaders = Array.from(new Set(photos.map((p) => p.uploader_name))).sort()
+  const filtered = photos.filter((p) =>
+    (filter === 'all' || p.status === filter) &&
+    (!uploaderFilter || p.uploader_name === uploaderFilter)
+  )
   const fmt = (b: number) => b < 1024 * 1024 ? `${(b / 1024).toFixed(0)}KB` : `${(b / 1024 / 1024).toFixed(1)}MB`
   const filterLabels: Record<Filter, string> = {
     pending: `承認待ち (${pending})`,
@@ -225,7 +230,7 @@ export default function AdminPage() {
         {/* ── Photos section ─────────────────────────── */}
         {section === 'photos' && (
           <>
-            <div className="flex gap-1.5 mb-10">
+            <div className="flex gap-1.5 mb-3">
               {(['pending', 'approved', 'all'] as Filter[]).map((f) => (
                 <button
                   key={f}
@@ -242,6 +247,38 @@ export default function AdminPage() {
                 </button>
               ))}
             </div>
+
+            {uploaders.length > 1 && (
+              <div className="flex flex-wrap gap-1.5 mb-8">
+                <button
+                  onClick={() => setUploaderFilter(null)}
+                  className="text-[10px] tracking-[0.25em] uppercase px-3 py-1.5 transition-colors"
+                  style={{
+                    fontFamily: 'var(--font-lato)',
+                    background: uploaderFilter === null ? 'rgba(201,168,76,0.15)' : 'transparent',
+                    color: uploaderFilter === null ? '#A88830' : '#8C7D6E',
+                    border: '1px solid ' + (uploaderFilter === null ? 'rgba(201,168,76,0.4)' : 'rgba(201,168,76,0.15)'),
+                  }}
+                >
+                  全員
+                </button>
+                {uploaders.map((name) => (
+                  <button
+                    key={name}
+                    onClick={() => setUploaderFilter(name)}
+                    className="text-[10px] tracking-[0.25em] uppercase px-3 py-1.5 transition-colors"
+                    style={{
+                      fontFamily: 'var(--font-lato)',
+                      background: uploaderFilter === name ? 'rgba(201,168,76,0.15)' : 'transparent',
+                      color: uploaderFilter === name ? '#A88830' : '#8C7D6E',
+                      border: '1px solid ' + (uploaderFilter === name ? 'rgba(201,168,76,0.4)' : 'rgba(201,168,76,0.15)'),
+                    }}
+                  >
+                    {name}
+                  </button>
+                ))}
+              </div>
+            )}
 
             {loading ? (
               <div className="flex items-center justify-center h-48 gap-4">
