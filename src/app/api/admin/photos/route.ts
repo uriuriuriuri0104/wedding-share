@@ -1,6 +1,27 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { getDb, initDb } from '@/lib/db'
 import { isAdminAuthenticated } from '@/lib/auth'
+
+export async function PATCH(req: NextRequest) {
+  if (!(await isAdminAuthenticated())) {
+    return NextResponse.json({ error: '認証が必要です' }, { status: 401 })
+  }
+
+  const { action } = await req.json()
+  if (action !== 'approve_all') {
+    return NextResponse.json({ error: '不正なアクション' }, { status: 400 })
+  }
+
+  try {
+    await initDb()
+    const db = getDb()
+    const result = await db.execute("UPDATE photos SET status = 'approved' WHERE status = 'pending'")
+    return NextResponse.json({ approved: result.rowsAffected })
+  } catch (err) {
+    console.error('Bulk approve error:', err)
+    return NextResponse.json({ error: '処理に失敗しました' }, { status: 500 })
+  }
+}
 
 export async function GET() {
   if (!(await isAdminAuthenticated())) {

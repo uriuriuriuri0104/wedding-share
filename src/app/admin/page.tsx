@@ -113,6 +113,18 @@ export default function AdminPage() {
     setShowQr(true)
   }
 
+  const approveAll = async () => {
+    if (!confirm(`保留中の写真 ${pending} 枚をすべて承認しますか？`)) return
+    const res = await fetch('/api/admin/photos', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'approve_all' }),
+    })
+    if (res.ok) {
+      setPhotos((p) => p.map((x) => x.status === 'pending' ? { ...x, status: 'approved' } : x))
+    }
+  }
+
   const downloadZip = async () => {
     setDownloading(true)
     try {
@@ -225,6 +237,11 @@ export default function AdminPage() {
             </button>
             {section === 'photos' && (
               <>
+                {pending > 0 && (
+                  <button onClick={approveAll} className="btn-navy" style={{ padding: '0.5rem 1.25rem' }}>
+                    全て承認 ({pending})
+                  </button>
+                )}
                 <button onClick={loadQr} className="btn-gold-outline" style={{ padding: '0.5rem 1.25rem' }}>
                   QR Code
                 </button>
