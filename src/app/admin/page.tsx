@@ -19,6 +19,14 @@ interface Photo {
 type Filter = 'pending' | 'approved' | 'all'
 type Section = 'photos' | 'vote'
 
+interface SiteStats {
+  totalViews: number
+  todayViews: number
+  totalPhotos: number
+  approvedPhotos: number
+  totalVotes: number
+}
+
 interface VoteStats {
   answerRevealed: boolean
   total: number
@@ -42,6 +50,8 @@ export default function AdminPage() {
   const [showQr, setShowQr] = useState(false)
   const [downloading, setDownloading] = useState(false)
 
+  const [siteStats, setSiteStats] = useState<SiteStats | null>(null)
+
   // Section
   const [section, setSection] = useState<Section>('photos')
 
@@ -61,6 +71,16 @@ export default function AdminPage() {
   }, [router])
 
   useEffect(() => { fetchPhotos() }, [fetchPhotos])
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      const res = await fetch('/api/admin/stats')
+      if (res.ok) setSiteStats(await res.json())
+    }
+    fetchStats()
+    const id = setInterval(fetchStats, 30_000)
+    return () => clearInterval(id)
+  }, [])
 
   const patch = async (id: string, action: string) => {
     await fetch(`/api/admin/photos/${id}`, {
@@ -226,6 +246,46 @@ export default function AdminPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-10">
+
+        {/* ── Stats cards ────────────────────────────── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-10">
+          {[
+            { label: '総アクセス数', value: siteStats?.totalViews },
+            { label: '本日のアクセス', value: siteStats?.todayViews },
+            { label: '投稿写真数', value: siteStats?.totalPhotos },
+            { label: '承認済み写真', value: siteStats?.approvedPhotos },
+            { label: '総投票数', value: siteStats?.totalVotes },
+          ].map(({ label, value }) => (
+            <div
+              key={label}
+              style={{
+                background: '#FAF7F0',
+                border: '1px solid rgba(201,168,76,0.25)',
+                boxShadow: '0 2px 12px rgba(0,0,0,0.06)',
+              }}
+              className="px-4 py-4"
+            >
+              <p
+                className="text-[9px] tracking-[0.3em] uppercase mb-2"
+                style={{ fontFamily: 'var(--font-lato)', color: '#A88830' }}
+              >
+                {label}
+              </p>
+              {value === undefined ? (
+                <div className="h-8 flex items-center">
+                  <div className="spinner" style={{ width: '1rem', height: '1rem', borderWidth: '1.5px' }} />
+                </div>
+              ) : (
+                <p
+                  className="text-navy text-3xl font-light leading-none"
+                  style={{ fontFamily: 'var(--font-cormorant)' }}
+                >
+                  {value.toLocaleString()}
+                </p>
+              )}
+            </div>
+          ))}
+        </div>
 
         {/* ── Photos section ─────────────────────────── */}
         {section === 'photos' && (

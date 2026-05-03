@@ -17,6 +17,14 @@ export default function VotePage() {
   const [errorMsg, setErrorMsg] = useState('')
 
   useEffect(() => {
+    fetch('/api/pageview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: '/vote' }),
+    }).catch(() => {})
+  }, [])
+
+  useEffect(() => {
     fetch('/api/vote')
       .then((r) => r.json())
       .then((data) => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
 import Link from 'next/link'
 import { GoldRule, FloralOrnament, ArchWindow, OrnamentalDivider } from '@/components/Ornaments'
 
@@ -14,6 +14,14 @@ export default function UploadPage() {
   const [result, setResult] = useState<{ success?: boolean; error?: string } | null>(null)
   const [dragOver, setDragOver] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    fetch('/api/pageview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: '/upload' }),
+    }).catch(() => {})
+  }, [])
 
   const addFiles = useCallback((newFiles: File[]) => {
     const imgs = newFiles.filter((f) => f.type.startsWith('image/'))

@@ -32,6 +32,14 @@ export default function GalleryPage() {
     return () => clearInterval(id)
   }, [fetchPhotos])
 
+  useEffect(() => {
+    fetch('/api/pageview', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ page: '/' }),
+    }).catch(() => {})
+  }, [])
+
   const uploaders = Array.from(new Set(photos.map((p) => p.uploader_name))).sort()
   const filteredPhotos = uploaderFilter ? photos.filter((p) => p.uploader_name === uploaderFilter) : photos
 
