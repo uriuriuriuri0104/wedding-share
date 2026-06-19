@@ -43,7 +43,7 @@ export default function VotePage() {
   const router = useRouter()
   const [selected, setSelected] = useState<number | null>(null)
   const [name, setName] = useState('')
-  const [status, setStatus] = useState<'loading' | 'ready' | 'voted' | 'submitting' | 'error'>('loading')
+  const [status, setStatus] = useState<'loading' | 'ready' | 'voted' | 'closed' | 'submitting' | 'error'>('loading')
   const [alreadyChoiceId, setAlreadyChoiceId] = useState<number | null>(null)
   const [alreadyName, setAlreadyName] = useState('')
   const [isChanging, setIsChanging] = useState(false)
@@ -61,7 +61,13 @@ export default function VotePage() {
     fetch('/api/vote')
       .then((r) => r.json())
       .then((data) => {
-        if (data.voted) {
+        if (data.isRevealed) {
+          if (data.voted) {
+            setAlreadyChoiceId(data.choiceId)
+            setAlreadyName(data.voterName || '')
+          }
+          setStatus('closed')
+        } else if (data.voted) {
           setAlreadyChoiceId(data.choiceId)
           setAlreadyName(data.voterName || '')
           setStatus('voted')
@@ -121,6 +127,48 @@ export default function VotePage() {
     return (
       <div className="min-h-screen marble-bg flex items-center justify-center">
         <div className="spinner" />
+      </div>
+    )
+  }
+
+  /* ── Closed ──────────────────────────────── */
+  if (status === 'closed') {
+    const choice = VOTE_CHOICES.find((c) => c.id === alreadyChoiceId)
+    return (
+      <div className="min-h-screen marble-bg flex items-center justify-center p-6">
+        <div className="w-full max-w-sm text-center">
+          <div style={{ border: '1px solid rgba(201,168,76,0.4)', padding: '3rem 2rem', background: '#FAF7F0' }}>
+            <FloralOrnament className="mx-auto mb-6" />
+            <p className="text-gold/60 text-[10px] tracking-[0.5em] uppercase mb-3" style={{ fontFamily: 'var(--font-lato)' }}>
+              Dress Quiz
+            </p>
+            <h2 className="text-3xl text-navy mb-3" style={{ fontFamily: 'var(--font-cormorant)', letterSpacing: '0.04em' }}>
+              投票は締め切られました
+            </h2>
+            <p className="text-stone/60 text-sm" style={{ fontFamily: 'var(--font-lato)' }}>
+              正解が発表されたため、<br />新たな投票・変更はできません。
+            </p>
+            {choice && alreadyName && (
+              <>
+                <GoldRule />
+                <p className="text-stone/60 text-xs mt-4 mb-2" style={{ fontFamily: 'var(--font-lato)' }}>
+                  {alreadyName} さんの回答
+                </p>
+                <div className="flex items-center justify-center gap-4 mt-3 mb-2" style={{ color: '#8C7D6E' }}>
+                  <PrincessImage princess={choice.first} size={72} />
+                  <span className="text-2xl text-gold/50 pb-6" style={{ fontFamily: 'var(--font-cormorant)' }}>→</span>
+                  <PrincessImage princess={choice.second} size={72} />
+                </div>
+              </>
+            )}
+            <GoldRule />
+            <div className="mt-6">
+              <Link href="/vote/result" className="btn-navy block" style={{ justifyContent: 'center' }}>
+                結果を見る
+              </Link>
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

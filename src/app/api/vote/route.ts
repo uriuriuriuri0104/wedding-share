@@ -50,10 +50,18 @@ async function ensureVoteTables() {
   await db.execute("INSERT OR IGNORE INTO vote_settings (key, value) VALUES ('answer_revealed', 'false')")
 }
 
+async function isAnswerRevealed(db: Awaited<ReturnType<typeof getDb>>) {
+  const s = await db.execute("SELECT value FROM vote_settings WHERE key = 'answer_revealed'")
+  return s.rows.length > 0 && String(s.rows[0].value) === 'true'
+}
+
 export async function GET(req: NextRequest) {
   await ensureVoteTables()
   const ip = getIp(req)
   const db = getDb()
+
+  const revealed = await isAnswerRevealed(db)
+
   const result = await db.execute({
     sql: 'SELECT choice_id, voter_name FROM votes WHERE ip_address = ?',
     args: [ip],
@@ -63,9 +71,10 @@ export async function GET(req: NextRequest) {
       voted: true,
       choiceId: Number(result.rows[0].choice_id),
       voterName: String(result.rows[0].voter_name ?? ''),
+      isRevealed: revealed,
     })
   }
-  return NextResponse.json({ voted: false })
+  return NextResponse.json({ voted: false, isRevealed: revealed })
 }
 
 export async function POST(req: NextRequest) {
@@ -75,6 +84,10 @@ export async function POST(req: NextRequest) {
   const body = await req.json()
   const choiceId = Number(body.choiceId)
   const voterName = String(body.voterName ?? '').trim()
+
+  if (await isAnswerRevealed(db)) {
+    return NextResponse.json({ error: '投票は締め切られました' }, { status: 403 })
+  }
 
   if (!choiceId || choiceId < 1 || choiceId > 12) {
     return NextResponse.json({ error: '無効な選択です' }, { status: 400 })
@@ -104,6 +117,10 @@ export async function PUT(req: NextRequest) {
   const ip = getIp(req)
   const body = await req.json()
   const choiceId = Number(body.choiceId)
+
+  if (await isAnswerRevealed(db)) {
+    return NextResponse.json({ error: '投票は締め切られました' }, { status: 403 })
+  }
 
   if (!choiceId || choiceId < 1 || choiceId > 12) {
     return NextResponse.json({ error: '無効な選択です' }, { status: 400 })
