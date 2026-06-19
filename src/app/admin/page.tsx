@@ -18,6 +18,7 @@ interface VoteStats {
 
 interface VoteResults {
   results: Record<number, number>
+  voterNames: Record<number, string[]>
   total: number
   answerRevealed: boolean
 }
@@ -300,6 +301,101 @@ export default function AdminPage() {
           <p className="text-center text-stone/30 text-[10px] tracking-wider mt-5" style={{ fontFamily: 'var(--font-lato)' }}>
             ★ 正解の選択肢 · 5秒ごとに自動更新
           </p>
+
+          {/* ── 正解者一覧 ──────────────────────────── */}
+          {voteResults?.answerRevealed && (() => {
+            const correctNames = voteResults.voterNames?.[CORRECT_CHOICE_ID] ?? []
+            const correctCount = correctNames.length
+            const incorrectCount = voteResults.total - correctCount
+
+            return (
+              <div className="mt-10">
+                <OrnamentalDivider>
+                  <span className="text-gold/70 text-[10px] tracking-[0.4em] uppercase px-3" style={{ fontFamily: 'var(--font-lato)' }}>
+                    正解者一覧
+                  </span>
+                </OrnamentalDivider>
+
+                {/* 正解・不正解カウント */}
+                <div className="grid grid-cols-2 gap-3 mt-6 mb-6">
+                  <div
+                    className="text-center py-5 px-4"
+                    style={{
+                      background: 'rgba(40,120,40,0.08)',
+                      border: '1.5px solid rgba(40,160,40,0.35)',
+                    }}
+                  >
+                    <p className="text-[9px] tracking-[0.35em] uppercase mb-2" style={{ fontFamily: 'var(--font-lato)', color: '#2a7a2a' }}>
+                      正解者
+                    </p>
+                    <p className="font-light leading-none" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '3.5rem', color: '#2a7a2a' }}>
+                      {correctCount}
+                    </p>
+                    <p className="text-[10px] mt-1" style={{ fontFamily: 'var(--font-lato)', color: 'rgba(40,120,40,0.7)' }}>名</p>
+                  </div>
+                  <div
+                    className="text-center py-5 px-4"
+                    style={{
+                      background: 'rgba(184,98,63,0.06)',
+                      border: '1.5px solid rgba(184,98,63,0.25)',
+                    }}
+                  >
+                    <p className="text-[9px] tracking-[0.35em] uppercase mb-2" style={{ fontFamily: 'var(--font-lato)', color: '#B8623F' }}>
+                      不正解者
+                    </p>
+                    <p className="font-light leading-none" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '3.5rem', color: '#B8623F' }}>
+                      {incorrectCount}
+                    </p>
+                    <p className="text-[10px] mt-1" style={{ fontFamily: 'var(--font-lato)', color: 'rgba(184,98,63,0.7)' }}>名</p>
+                  </div>
+                </div>
+
+                {/* 正解者名リスト */}
+                <div
+                  className="p-6"
+                  style={{
+                    background: '#FAF7F0',
+                    border: '1px solid rgba(201,168,76,0.25)',
+                    boxShadow: '0 2px 12px rgba(0,0,0,0.05)',
+                  }}
+                >
+                  {correctCount === 0 ? (
+                    <p
+                      className="text-center py-4"
+                      style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1.4rem', color: '#8C7D6E' }}
+                    >
+                      正解者はいません
+                    </p>
+                  ) : (
+                    <ul className="space-y-2">
+                      {correctNames.map((name, i) => (
+                        <li
+                          key={i}
+                          className="flex items-center gap-3 py-2.5 px-4"
+                          style={{
+                            borderBottom: i < correctNames.length - 1 ? '1px solid rgba(201,168,76,0.15)' : 'none',
+                          }}
+                        >
+                          <span
+                            className="text-[10px] tracking-[0.2em] flex-shrink-0"
+                            style={{ fontFamily: 'var(--font-lato)', color: 'rgba(168,136,48,0.6)', minWidth: '2rem' }}
+                          >
+                            {String(i + 1).padStart(2, '0')}
+                          </span>
+                          <span className="text-gold text-xs flex-shrink-0">★</span>
+                          <span
+                            style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1.4rem', color: '#1C2E5A' }}
+                          >
+                            {name}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </main>
 
