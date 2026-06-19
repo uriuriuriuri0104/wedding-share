@@ -84,25 +84,86 @@ export default function VoteResultPage() {
           </div>
         ) : (
           <>
-            {/* Correct answer banner */}
-            {data.answerRevealed && (
-              <div
-                className="mb-8 text-center py-5 px-6"
-                style={{
-                  background: 'linear-gradient(135deg, #1C2E5A 0%, #12203E 100%)',
-                  border: '1.5px solid rgba(201,168,76,0.6)',
-                  boxShadow: '0 4px 24px rgba(28,46,90,0.25)',
-                }}
-              >
-                <FloralOrnament className="mx-auto mb-3" />
-                <p className="text-gold/60 text-[10px] tracking-[0.5em] uppercase mb-2" style={{ fontFamily: 'var(--font-lato)' }}>
-                  正解発表
-                </p>
-                <p className="text-gold text-2xl" style={{ fontFamily: 'var(--font-cormorant)', letterSpacing: '0.05em' }}>
-                  {VOTE_CHOICES.find((c) => c.id === CORRECT_CHOICE_ID)?.label}
-                </p>
-              </div>
-            )}
+            {/* Personal result + correct answer banner */}
+            {data.answerRevealed && (() => {
+              const correctChoice = VOTE_CHOICES.find((c) => c.id === CORRECT_CHOICE_ID)
+              const isCorrectVote = votedChoiceId === CORRECT_CHOICE_ID
+              const hasVoted = votedChoiceId !== null
+
+              return (
+                <div className="mb-8">
+                  {/* 正解 / 残念 */}
+                  {hasVoted && (
+                    <div
+                      className="text-center py-8 px-6 mb-4"
+                      style={{
+                        background: isCorrectVote
+                          ? 'linear-gradient(135deg, #1a3a1a 0%, #0f2b0f 100%)'
+                          : 'linear-gradient(135deg, #3a1a1a 0%, #2b0f0f 100%)',
+                        border: isCorrectVote
+                          ? '2px solid rgba(80,180,80,0.6)'
+                          : '2px solid rgba(184,98,63,0.5)',
+                        boxShadow: isCorrectVote
+                          ? '0 6px 32px rgba(40,120,40,0.2)'
+                          : '0 6px 32px rgba(184,98,63,0.15)',
+                      }}
+                    >
+                      <p
+                        className="text-6xl mb-3"
+                        style={{ lineHeight: 1.1 }}
+                      >
+                        {isCorrectVote ? '🎉' : '😢'}
+                      </p>
+                      <p
+                        className="font-bold"
+                        style={{
+                          fontFamily: 'var(--font-cormorant)',
+                          fontSize: '2.8rem',
+                          letterSpacing: '0.06em',
+                          color: isCorrectVote ? '#6EE06E' : '#E08060',
+                          lineHeight: 1.1,
+                        }}
+                      >
+                        {isCorrectVote ? '正解！' : '残念...'}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* 正解発表 */}
+                  <div
+                    className="text-center py-5 px-6"
+                    style={{
+                      background: 'linear-gradient(135deg, #1C2E5A 0%, #12203E 100%)',
+                      border: '1.5px solid rgba(201,168,76,0.6)',
+                      boxShadow: '0 4px 24px rgba(28,46,90,0.25)',
+                    }}
+                  >
+                    <FloralOrnament className="mx-auto mb-3" />
+                    <p className="text-gold/60 text-[10px] tracking-[0.5em] uppercase mb-2" style={{ fontFamily: 'var(--font-lato)' }}>
+                      正解発表
+                    </p>
+                    <p
+                      className="text-gold"
+                      style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1.6rem', letterSpacing: '0.05em' }}
+                    >
+                      正解は
+                    </p>
+                    <p
+                      className="text-gold font-semibold mt-1"
+                      style={{ fontFamily: 'var(--font-cormorant)', fontSize: '2rem', letterSpacing: '0.06em' }}
+                    >
+                      {correctChoice?.label}
+                    </p>
+                    <p
+                      className="text-gold mt-1"
+                      style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1.6rem', letterSpacing: '0.05em' }}
+                    >
+                      でした！
+                    </p>
+                  </div>
+                </div>
+              )
+            })()}
 
             <OrnamentalDivider>
               <span className="text-gold/70 text-[10px] tracking-[0.4em] uppercase px-3" style={{ fontFamily: 'var(--font-lato)' }}>
