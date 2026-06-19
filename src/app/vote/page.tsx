@@ -3,8 +3,41 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { GoldRule, FloralOrnament, ArchWindow, OrnamentalDivider } from '@/components/Ornaments'
-import { VOTE_CHOICES } from '@/lib/vote-choices'
+import { VOTE_CHOICES, PRINCESS_NAMES } from '@/lib/vote-choices'
+
+function PrincessCard({ key: _key, princess, size = 'md' }: { key?: string | number; princess: string; size?: 'sm' | 'md' }) {
+  const px = size === 'sm' ? 56 : 72
+  return (
+    <div className="flex flex-col items-center gap-1">
+      <div
+        className="relative overflow-hidden rounded-full"
+        style={{
+          width: px,
+          height: px,
+          border: '1.5px solid rgba(201,168,76,0.45)',
+          background: '#EDE4CF',
+          flexShrink: 0,
+        }}
+      >
+        <Image
+          src={`/${princess}.png`}
+          alt={PRINCESS_NAMES[princess]}
+          fill
+          className="object-cover"
+          sizes={`${px}px`}
+        />
+      </div>
+      <span
+        className="text-[10px] tracking-[0.15em] leading-none"
+        style={{ fontFamily: 'var(--font-lato)', color: 'inherit' }}
+      >
+        {PRINCESS_NAMES[princess]}
+      </span>
+    </div>
+  )
+}
 
 export default function VotePage() {
   const router = useRouter()
@@ -109,11 +142,11 @@ export default function VotePage() {
               </p>
             )}
             {choice && (
-              <p className="text-stone text-sm mb-1 mt-2" style={{ fontFamily: 'var(--font-lato)' }}>
-                <span className="text-navy font-medium" style={{ fontFamily: 'var(--font-cormorant)', fontSize: '1.1rem' }}>
-                  {choice.label}
-                </span>
-              </p>
+              <div className="flex items-center justify-center gap-3 mt-5 mb-2">
+                <PrincessCard princess={choice.first} size="sm" />
+                <span className="text-gold/60 text-lg" style={{ fontFamily: 'var(--font-cormorant)' }}>→</span>
+                <PrincessCard princess={choice.second} size="sm" />
+              </div>
             )}
             <p className="text-stone/50 text-xs mt-3" style={{ fontFamily: 'var(--font-lato)' }}>
               投票を変更することもできます。
@@ -176,7 +209,7 @@ export default function VotePage() {
         <div className="absolute bottom-0 inset-x-0 h-[1px]" style={{ background: 'linear-gradient(to right, transparent, rgba(201,168,76,0.4), transparent)' }} />
       </header>
 
-      <main className="max-w-2xl mx-auto px-5 py-10">
+      <main className="max-w-3xl mx-auto px-5 py-10">
 
         {/* Name input */}
         <div className="mb-8">
@@ -213,11 +246,12 @@ export default function VotePage() {
 
         <OrnamentalDivider>
           <span className="text-gold/70 text-[10px] tracking-[0.4em] uppercase px-3" style={{ fontFamily: 'var(--font-lato)' }}>
-            順番を選んでください
+            着順を選んでください
           </span>
         </OrnamentalDivider>
 
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-3">
+        {/* Choice grid */}
+        <div className="mt-8 grid grid-cols-2 sm:grid-cols-3 gap-3">
           {VOTE_CHOICES.map((choice) => {
             const isSelected = selected === choice.id
             return (
@@ -225,7 +259,7 @@ export default function VotePage() {
                 key={choice.id}
                 onClick={() => setSelected(choice.id)}
                 disabled={status === 'submitting'}
-                className="text-left transition-all duration-200 px-5 py-4"
+                className="text-left transition-all duration-200 px-3 py-4 flex flex-col items-center gap-3"
                 style={{
                   background: isSelected ? '#1C2E5A' : 'rgba(250,247,240,0.9)',
                   border: isSelected
@@ -234,42 +268,106 @@ export default function VotePage() {
                   boxShadow: isSelected
                     ? '0 4px 20px rgba(28,46,90,0.2)'
                     : '0 2px 8px rgba(0,0,0,0.04)',
+                  color: isSelected ? '#C9A84C' : '#1C2E5A',
                 }}
               >
-                <div className="flex items-start gap-3">
-                  <span
-                    className="flex-shrink-0 w-5 h-5 rounded-full border flex items-center justify-center mt-0.5"
-                    style={{
-                      borderColor: isSelected ? '#C9A84C' : 'rgba(201,168,76,0.4)',
-                      background: isSelected ? '#C9A84C' : 'transparent',
-                    }}
-                  >
-                    {isSelected && (
-                      <span className="w-2 h-2 rounded-full" style={{ background: '#1C2E5A' }} />
-                    )}
-                  </span>
-                  <div>
+                {/* No. badge */}
+                <span
+                  className="self-start text-[9px] tracking-[0.3em] uppercase leading-none"
+                  style={{
+                    fontFamily: 'var(--font-lato)',
+                    color: isSelected ? 'rgba(201,168,76,0.6)' : 'rgba(140,125,110,0.7)',
+                  }}
+                >
+                  No. {choice.id}
+                </span>
+
+                {/* Princess images */}
+                <div className="flex items-center gap-2 w-full justify-center">
+                  {/* 1着目 */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div
+                      className="relative overflow-hidden rounded-full"
+                      style={{
+                        width: 60,
+                        height: 60,
+                        border: isSelected
+                          ? '1.5px solid rgba(201,168,76,0.7)'
+                          : '1.5px solid rgba(201,168,76,0.35)',
+                        background: isSelected ? '#12203E' : '#EDE4CF',
+                        flexShrink: 0,
+                      }}
+                    >
+                      <Image
+                        src={`/${choice.first}.png`}
+                        alt={PRINCESS_NAMES[choice.first]}
+                        fill
+                        className="object-cover"
+                        sizes="60px"
+                      />
+                    </div>
                     <span
-                      className="text-[10px] tracking-[0.3em] uppercase block mb-1"
+                      className="text-[9px] tracking-[0.1em] leading-none"
                       style={{
                         fontFamily: 'var(--font-lato)',
-                        color: isSelected ? 'rgba(201,168,76,0.6)' : 'rgba(140,125,110,0.7)',
+                        color: isSelected ? 'rgba(201,168,76,0.75)' : 'rgba(140,125,110,0.8)',
                       }}
                     >
-                      No. {choice.id}
+                      {PRINCESS_NAMES[choice.first]}
                     </span>
-                    <span
-                      className="text-base leading-snug"
+                  </div>
+
+                  {/* Arrow */}
+                  <span
+                    className="text-xl leading-none mb-4"
+                    style={{ color: isSelected ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.4)' }}
+                  >
+                    →
+                  </span>
+
+                  {/* 2着目 */}
+                  <div className="flex flex-col items-center gap-1">
+                    <div
+                      className="relative overflow-hidden rounded-full"
                       style={{
-                        fontFamily: 'var(--font-cormorant)',
-                        color: isSelected ? '#C9A84C' : '#1C2E5A',
-                        fontSize: '1.1rem',
+                        width: 60,
+                        height: 60,
+                        border: isSelected
+                          ? '1.5px solid rgba(201,168,76,0.7)'
+                          : '1.5px solid rgba(201,168,76,0.35)',
+                        background: isSelected ? '#12203E' : '#EDE4CF',
+                        flexShrink: 0,
                       }}
                     >
-                      {choice.label}
+                      <Image
+                        src={`/${choice.second}.png`}
+                        alt={PRINCESS_NAMES[choice.second]}
+                        fill
+                        className="object-cover"
+                        sizes="60px"
+                      />
+                    </div>
+                    <span
+                      className="text-[9px] tracking-[0.1em] leading-none"
+                      style={{
+                        fontFamily: 'var(--font-lato)',
+                        color: isSelected ? 'rgba(201,168,76,0.75)' : 'rgba(140,125,110,0.8)',
+                      }}
+                    >
+                      {PRINCESS_NAMES[choice.second]}
                     </span>
                   </div>
                 </div>
+
+                {/* Selected indicator */}
+                {isSelected && (
+                  <span
+                    className="text-[9px] tracking-[0.25em] uppercase"
+                    style={{ fontFamily: 'var(--font-lato)', color: 'rgba(201,168,76,0.7)' }}
+                  >
+                    ✦ 選択中
+                  </span>
+                )}
               </button>
             )
           })}
