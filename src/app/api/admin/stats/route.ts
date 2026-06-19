@@ -11,19 +11,15 @@ export async function GET() {
     await initDb()
     const db = getDb()
 
-    const [views, todayViews, totalPhotos, approvedPhotos, votes] = await Promise.all([
+    const [views, todayViews, votes] = await Promise.all([
       db.execute('SELECT COUNT(*) as count FROM page_views'),
       db.execute("SELECT COUNT(*) as count FROM page_views WHERE date(created_at, '+9 hours') = date('now', '+9 hours')"),
-      db.execute('SELECT COUNT(*) as count FROM photos'),
-      db.execute("SELECT COUNT(*) as count FROM photos WHERE status = 'approved'"),
       db.execute('SELECT COUNT(*) as count FROM votes'),
     ])
 
     return NextResponse.json({
       totalViews: Number(views.rows[0].count),
       todayViews: Number(todayViews.rows[0].count),
-      totalPhotos: Number(totalPhotos.rows[0].count),
-      approvedPhotos: Number(approvedPhotos.rows[0].count),
       totalVotes: Number(votes.rows[0].count),
     })
   } catch (err) {

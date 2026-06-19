@@ -157,10 +157,7 @@ export default function VotePage() {
         <div className="absolute bottom-0 inset-x-0 flex justify-center pointer-events-none opacity-10">
           <ArchWindow width={220} height={200} opacity={1} />
         </div>
-        <div className="relative z-10 flex items-center justify-between max-w-2xl mx-auto mb-6">
-          <Link href="/" className="text-gold/50 hover:text-gold transition-colors text-sm tracking-widest" style={{ fontFamily: 'var(--font-lato)' }}>
-            ← Gallery
-          </Link>
+        <div className="relative z-10 flex items-center justify-end max-w-2xl mx-auto mb-6">
           <Link href="/vote/result" className="text-gold/50 hover:text-gold transition-colors text-sm tracking-widest" style={{ fontFamily: 'var(--font-lato)' }}>
             結果を見る →
           </Link>
