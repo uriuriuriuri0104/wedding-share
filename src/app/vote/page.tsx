@@ -290,18 +290,18 @@ export default function VotePage() {
                 {/* Top row: No. + selected badge */}
                 <div className="flex items-center justify-between mb-4">
                   <span
-                    className="text-[9px] tracking-[0.35em] uppercase"
+                    className="text-base font-bold tracking-[0.2em] uppercase"
                     style={{
                       fontFamily: 'var(--font-lato)',
-                      color: isSelected ? 'rgba(201,168,76,0.65)' : 'rgba(140,125,110,0.6)',
+                      color: isSelected ? '#C9A84C' : '#4A3F35',
                     }}
                   >
                     No. {choice.id}
                   </span>
                   {isSelected && (
                     <span
-                      className="text-[9px] tracking-[0.3em] uppercase"
-                      style={{ fontFamily: 'var(--font-lato)', color: 'rgba(201,168,76,0.8)' }}
+                      className="text-[10px] tracking-[0.3em] uppercase"
+                      style={{ fontFamily: 'var(--font-lato)', color: '#C9A84C' }}
                     >
                       ✦ 選択中
                     </span>
@@ -335,10 +335,10 @@ export default function VotePage() {
                       />
                     </div>
                     <span
-                      className="text-[11px] tracking-[0.15em]"
+                      className="text-sm font-semibold tracking-[0.12em]"
                       style={{
                         fontFamily: 'var(--font-lato)',
-                        color: isSelected ? 'rgba(201,168,76,0.8)' : '#8C7D6E',
+                        color: isSelected ? '#C9A84C' : '#3A2E25',
                       }}
                     >
                       {PRINCESS_NAMES[choice.first]}
@@ -379,10 +379,10 @@ export default function VotePage() {
                       />
                     </div>
                     <span
-                      className="text-[11px] tracking-[0.15em]"
+                      className="text-sm font-semibold tracking-[0.12em]"
                       style={{
                         fontFamily: 'var(--font-lato)',
-                        color: isSelected ? 'rgba(201,168,76,0.8)' : '#8C7D6E',
+                        color: isSelected ? '#C9A84C' : '#3A2E25',
                       }}
                     >
                       {PRINCESS_NAMES[choice.second]}
