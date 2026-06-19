@@ -25,7 +25,7 @@ function PrincessCard({ key: _key, princess, size = 'md' }: { key?: string | num
           src={`/${princess}.png`}
           alt={PRINCESS_NAMES[princess]}
           fill
-          className="object-cover"
+          className="object-contain"
           sizes={`${px}px`}
         />
       </div>
@@ -295,7 +295,7 @@ export default function VotePage() {
                         border: isSelected
                           ? '1.5px solid rgba(201,168,76,0.7)'
                           : '1.5px solid rgba(201,168,76,0.35)',
-                        background: isSelected ? '#12203E' : '#EDE4CF',
+                        background: '#FFFFFF',
                         flexShrink: 0,
                       }}
                     >
@@ -303,7 +303,7 @@ export default function VotePage() {
                         src={`/${choice.first}.png`}
                         alt={PRINCESS_NAMES[choice.first]}
                         fill
-                        className="object-cover"
+                        className="object-contain"
                         sizes="120px"
                       />
                     </div>
@@ -337,7 +337,7 @@ export default function VotePage() {
                         border: isSelected
                           ? '1.5px solid rgba(201,168,76,0.7)'
                           : '1.5px solid rgba(201,168,76,0.35)',
-                        background: isSelected ? '#12203E' : '#EDE4CF',
+                        background: '#FFFFFF',
                         flexShrink: 0,
                       }}
                     >
@@ -345,7 +345,7 @@ export default function VotePage() {
                         src={`/${choice.second}.png`}
                         alt={PRINCESS_NAMES[choice.second]}
                         fill
-                        className="object-cover"
+                        className="object-contain"
                         sizes="120px"
                       />
                     </div>
