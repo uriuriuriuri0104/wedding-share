@@ -199,8 +199,8 @@ export default function VotePage() {
           <p className="text-gold/60 text-[10px] tracking-[0.5em] uppercase mb-4" style={{ fontFamily: 'var(--font-lato)' }}>
             Dress Quiz
           </p>
-          <h1 className="text-5xl text-cream-light font-light" style={{ fontFamily: 'var(--font-cormorant)', letterSpacing: '0.06em' }}>
-            オリジナルカラードレス当てクイズ
+          <h1 className="text-5xl text-cream-light font-light whitespace-nowrap" style={{ fontFamily: 'var(--font-cormorant)', letterSpacing: '0.06em' }}>
+            ドレス当てクイズ
           </h1>
           <p className="text-gold/50 mt-3 text-base italic" style={{ fontFamily: 'var(--font-cormorant)' }}>
             {isChanging ? '投票を変更します' : '新婦は2着のカラードレスを着用します。その着順と種類を当ててください。'}
@@ -285,12 +285,13 @@ export default function VotePage() {
                 {/* Princess images */}
                 <div className="flex items-center gap-2 w-full justify-center">
                   {/* 1着目 */}
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1.5">
                     <div
-                      className="relative overflow-hidden rounded-full"
+                      className="relative overflow-hidden"
                       style={{
-                        width: 60,
-                        height: 60,
+                        width: 120,
+                        height: 120,
+                        borderRadius: 8,
                         border: isSelected
                           ? '1.5px solid rgba(201,168,76,0.7)'
                           : '1.5px solid rgba(201,168,76,0.35)',
@@ -303,7 +304,7 @@ export default function VotePage() {
                         alt={PRINCESS_NAMES[choice.first]}
                         fill
                         className="object-cover"
-                        sizes="60px"
+                        sizes="120px"
                       />
                     </div>
                     <span
@@ -319,19 +320,20 @@ export default function VotePage() {
 
                   {/* Arrow */}
                   <span
-                    className="text-xl leading-none mb-4"
+                    className="text-xl leading-none mb-5"
                     style={{ color: isSelected ? 'rgba(201,168,76,0.5)' : 'rgba(201,168,76,0.4)' }}
                   >
                     →
                   </span>
 
                   {/* 2着目 */}
-                  <div className="flex flex-col items-center gap-1">
+                  <div className="flex flex-col items-center gap-1.5">
                     <div
-                      className="relative overflow-hidden rounded-full"
+                      className="relative overflow-hidden"
                       style={{
-                        width: 60,
-                        height: 60,
+                        width: 120,
+                        height: 120,
+                        borderRadius: 8,
                         border: isSelected
                           ? '1.5px solid rgba(201,168,76,0.7)'
                           : '1.5px solid rgba(201,168,76,0.35)',
@@ -344,7 +346,7 @@ export default function VotePage() {
                         alt={PRINCESS_NAMES[choice.second]}
                         fill
                         className="object-cover"
-                        sizes="60px"
+                        sizes="120px"
                       />
                     </div>
                     <span
